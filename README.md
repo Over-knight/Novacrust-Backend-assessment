@@ -357,13 +357,85 @@ The API returns meaningful error responses:
 
 ---
 
+## Production Considerations & Scaling
+
+If this application were to scale to millions of users and handle high-concurrency scenarios, I would introduce the following changes:
+
+### 1. **Database & Locking**
+- **Switch to PostgreSQL**: Replace SQLite with PostgreSQL for production-grade performance and concurrent write support
+- **Pessimistic Locking**: Use `SELECT ... FOR UPDATE` during transfers to prevent race conditions at the database level
+- **Connection Pooling**: Configure Prisma with optimal connection pool settings for high throughput
+- **Database Indices**: Add indices on frequently queried fields (`wallet.id`, `transaction.type`, `transaction.createdAt`)
+
+### 2. **Idempotency**
+- Implement **idempotency keys** (via Redis) for `fund` and `transfer` endpoints
+- Prevent double-charging if clients retry requests due to network failures
+- Store processed request IDs with a TTL (e.g., 24 hours)
+- Return cached responses for duplicate requests
+
+### 3. **Async Processing & Queuing**
+- Move transaction logging to a **background queue** (e.g., BullMQ + Redis)
+- Process non-critical operations asynchronously for faster API responses
+- Implement webhook notifications for transaction completion
+- Use dead-letter queues for failed operations with retry logic
+
+### 4. **Data Type Improvements**
+- Use **Decimal/Numeric types** in PostgreSQL instead of `Int` (cents)
+- Provides higher precision and avoids overflow for very large amounts
+- Handle multi-currency exchange rates with proper decimal precision
+
+### 5. **Caching Layer**
+- Implement **Redis caching** for frequently accessed wallet balances
+- Cache transaction history with appropriate TTL
+- Invalidate cache on balance-changing operations
+- Use cache-aside pattern for optimal performance
+
+### 6. **Monitoring & Observability**
+- Add **structured logging** (Winston/Pino) with correlation IDs
+- Implement **APM** (Application Performance Monitoring) - e.g., New Relic, DataDog
+- Track key metrics: transaction success rate, latency percentiles, error rates
+- Set up alerts for anomalies (e.g., high failure rates, slow queries)
+
+### 7. **Security Enhancements**
+- Add **authentication** (JWT/OAuth 2.0) and authorization
+- Implement **rate limiting** per user/IP to prevent abuse
+- Add **DDoS protection** at the API gateway level
+- Encrypt sensitive data at rest and in transit
+- Implement wallet ownership verification
+
+### 8. **High Availability & Resilience**
+- Deploy multiple instances behind a **load balancer** (horizontal scaling)
+- Implement **health checks** and graceful shutdown
+- Use **circuit breakers** for external service calls
+- Set up **database replication** (read replicas for scaling reads)
+- Implement **disaster recovery** with automated backups
+
+### 9. **Audit Trail & Compliance**
+- Maintain **immutable audit logs** for all balance-changing operations
+- Track who performed which action and when (user attribution)
+- Implement compliance features for financial regulations (e.g., transaction limits)
+- Store audit records in a separate database or WORM storage
+
+### 10. **Race Condition Mitigation**
+- Current implementation uses atomic `decrement` operations
+- Added post-update balance check to catch negative balances in transactions
+- In production with PostgreSQL, would use row-level locking and optimistic concurrency control
+
+---
 
 ## Testing
 
-To run tests (when implemented):
+Run the comprehensive unit tests:
 ```bash
 npm test
 ```
+
+Tests cover:
+- Wallet creation
+- Balance validation
+- Transfer logic with edge cases
+- Insufficient balance scenarios
+- Race condition prevention
 
 ---
 

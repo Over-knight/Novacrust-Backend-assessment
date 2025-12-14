@@ -138,6 +138,10 @@ export class WalletService {
         },
       });
 
+      if (updatedSender.balance < 0) {
+        throw new BadRequestException('Insufficient balance');
+      }
+
       // Add to receiver
       const updatedReceiver = await tx.wallet.update({
         where: { id: receiverWalletId },

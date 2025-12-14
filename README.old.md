@@ -2,7 +2,6 @@
 
 
 
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
