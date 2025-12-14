@@ -357,51 +357,6 @@ The API returns meaningful error responses:
 
 ---
 
-## Production Considerations
-
-### Scalability
-
-1. **Database**
-   - Switch to PostgreSQL/MySQL with connection pooling
-   - Add database indices on frequently queried fields (wallet ID, transaction types)
-   - Consider read replicas for high-traffic scenarios
-
-2. **Caching**
-   - Implement Redis for wallet balance caching
-   - Cache frequently accessed wallet data
-   - Invalidate cache on balance changes
-
-3. **Idempotency**
-   - Add idempotency keys to prevent duplicate transactions
-   - Store processed request IDs in Redis/database
-   - Return cached response for duplicate requests
-
-4. **Rate Limiting**
-   - Implement rate limiting per user/IP
-   - Prevent abuse and ensure fair usage
-
-5. **Monitoring & Logging**
-   - Add structured logging (Winston/Pino)
-   - Implement APM (Application Performance Monitoring)
-   - Track transaction success rates and latencies
-
-6. **Security**
-   - Add authentication (JWT/OAuth)
-   - Implement authorization (wallet ownership)
-   - Add API rate limiting and DDoS protection
-   - Encrypt sensitive data at rest
-
-7. **High Availability**
-   - Deploy multiple instances behind a load balancer
-   - Implement health checks
-   - Use message queues for async operations (RabbitMQ/SQS)
-
-8. **Audit Trail**
-   - Log all balance-changing operations
-   - Store immutable audit records
-   - Track who performed which action
-
----
 
 ## Testing
 
@@ -412,20 +367,9 @@ npm test
 
 ---
 
-## Time Spent
-
-- Project setup: 30 minutes
-- Database schema design: 30 minutes
-- API implementation: 2 hours
-- Testing & validation: 1 hour
-- Documentation: 1 hour
-- **Total: ~5 hours**
-
----
-
 ## Author
 
-**Over-knight**
+**Irabor Victor**
 
 GitHub: [Over-knight/Novacrust-Backend-assessment](https://github.com/Over-knight/Novacrust-Backend-assessment)
 
