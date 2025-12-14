@@ -1,0 +1,41 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Wallet {
+  id           String @id @default(uuid())
+  currency     String 
+  balance      Int    @default(0)
+
+  // Relationships
+  sentTransactions     Transaction[] @relation("Sender")
+  receivedTransactions Transaction[] @relation("Receiver")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id           String @id @default(uuid())
+  // Use "Int" for the amount in cents
+  amount       Int
+  type         String // "DEPOSIT", "WITHDRAWAL", "TRANSFER"
+  status       String //"COMPLETED", "PENDING", "FAILED"
+  description  String?
+
+  // Sender Wallet (can be null for DEPOSITs)
+  senderId     String?
+  sender       Wallet? @relation("Sender", fields: [senderId], references: [id])
+
+  // Receiver Wallet (can be null for WITHDRAWALs)
+  receiverId   String?
+  receiver     Wallet? @relation("Receiver", fields: [receiverId], references: [id])
+
+  createdAt DateTime @default(now())
+}
